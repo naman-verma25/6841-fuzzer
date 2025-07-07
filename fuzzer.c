@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "mutator.h"
+#include "executor.h"
 
 #define MAX_INPUT 4096
 
