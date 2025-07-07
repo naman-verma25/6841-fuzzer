@@ -3,9 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
+#include <time.h>
 #include <unistd.h>
-#include "mutator.h"
-#include "executor.h"
+#include <sys.wait.h>
 
 #define MAX_INPUT 4096
 
