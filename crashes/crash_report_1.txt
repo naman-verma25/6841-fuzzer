@@ -1,0 +1,8 @@
+Exit Signal: 11 (e.g., SIGSEGV = 11)
+=== Crash Report #1 ===
+Target: targets/buffer
+Timestamp: 1751959035
+Mutation Strategy: Dictionary
+Input Length: 37
+Crash Input: ' OR 1=1 --<script>alert(1)</script>
+

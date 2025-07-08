@@ -1,0 +1,8 @@
+Exit Signal: 11 (e.g., SIGSEGV = 11)
+=== Crash Report #0 ===
+Target: targets/buffer
+Timestamp: 1751959059
+Mutation Strategy: Havoc
+Input Length: 25
+Crash Input: <ycript>alert(1)<script>
+

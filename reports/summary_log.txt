@@ -1,0 +1,6 @@
+Tried input from i3.txt using strategy Arithmetic → Crash: YES
+Tried input from i2.txt using strategy Dictionary → Crash: YES
+Tried input from i1.txt using strategy Byte Flip → Crash: NO
+Tried input from i3.txt using strategy Havoc → Crash: YES
+Tried input from i2.txt using strategy Bit Flip → Crash: NO
+Tried input from i1.txt using strategy Dictionary → Crash: NO
