@@ -42,39 +42,70 @@ int main(int argc, char *argv[]) {
 	}
 
 	struct dirent *entry;
+    struct dirent *files[256];
+    int file_count = 0;
+
+    while((entry = readdir(d)) != NULL) {
+        if (entry->d_name[0] == '.') {
+            continue;
+        }
+        files[file_count++] = entry;
+    }
+
+    if (file_count == 0) {
+        printf("No Input Files Detected. Create One and try again");
+        return 1;
+    }
+
+    printf("Availables Files for Injection\n");
+    for(int i = 0; i < file_count; i++) {
+        printf("[%d] %s\n", i, files[i]->d_name);
+    }
+
+    printf("Enter your choice Between 0 and %d ", (file_count - 1));
+    int choice;
+    scanf("%d", &choice);
+
+    if(choice >= file_count || choice < 0) {
+        printf("Invalid Choice");
+        return 1;
+    }
+
+
 	char original[MAX_INPUT_SIZE], mutated[MAX_MUTATED_SIZE];
 	int crash_id = 0;
 
 	srand(time(NULL));
 
-	while ((entry = readdir(d)) != NULL) {
-		if (entry->d_name[0] == '.') continue;
+	for (int i = 0; i < file_count; i++) {
+		if (choice != -1 && i != choice) continue;
 
 		char path[256];
-		snprintf(path, sizeof(path), "corpus/%s", entry->d_name);
+		snprintf(path, sizeof(path), "corpus/%s", files[i]->d_name);
 
-		// reading the input file
 		FILE *fp = fopen(path, "r");
 		if (!fp) {
 			perror("Failed to open input file");
-			return 1;
+			continue;
 		}
 		size_t bytes_read = fread(original, 1, MAX_INPUT_SIZE - 1, fp);
-        original[bytes_read] = '\0';
+		original[bytes_read] = '\0';
 		fclose(fp);
 
 		mutate(original, mutated);
 		bool crashed = run_target(target_path, mutated, crash_id++);
-        if(!crashed) {
-            crash_id--;
-        }
-        FILE *summary = fopen("reports/summary_log.txt", "a");
-        fprintf(summary, "Tried input from %s using strategy %s → Crash: %s\n",
-                entry->d_name, last_strat, crashed ? "YES" : "NO");
-        fclose(summary);
+		if (!crashed) {
+			crash_id--;
+		}
+
+		FILE *summary = fopen("reports/summary_log.txt", "a");
+		fprintf(summary, "Tried input from %s using strategy %s → Crash: %s\n",
+		        files[i]->d_name, last_strat, crashed ? "YES" : "NO");
+		fclose(summary);
 	}
-    printf("Fuzzing complete. Total crashes: %d\n", crash_id);
-	closedir(d);    
+
+	printf("Fuzzing complete. Total crashes: %d\n", crash_id);
+	closedir(d);
 	return 0;
 }
 
