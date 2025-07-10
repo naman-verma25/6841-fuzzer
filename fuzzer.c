@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
     for(int i = 0; i < crash_id; i++) {
         printf("[%d] View the crash report at crashes/crash_report_%d.txt\n", i, i);
     }
-    printf("And View the Summary at reports/summary_log.txt\n");
+    printf("View the Summary at reports/summary_log.txt\n");
 	closedir(d);
 	return 0;
 }

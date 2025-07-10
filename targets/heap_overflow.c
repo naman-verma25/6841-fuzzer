@@ -10,7 +10,6 @@ int main(int argc, char *argv[]) {
 
     char *buf = malloc(32);
     fread(buf, 1, 1024, f);
-    printf("Input: %s\n", buf);
     free(buf);
     return 0;
 }
