@@ -1,1 +1,1 @@
-<script>alert(1)<script>
+%x %x %x %x
