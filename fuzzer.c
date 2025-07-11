@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <fcntl.h>
+#include "viewer/html_report.h"
 
 #define MAX_INPUT_SIZE 1024
 #define MAX_MUTATED_SIZE 2048
@@ -32,6 +33,9 @@ char *last_strat = "";
 // function prototypes
 void mutate(char *input, char *output, int strategy);
 bool run_target(const char *target_path, const char * input, int crash_id);
+void asan_output(const char *stderr_file, FILE *rf, char *asan_type_out);
+void generate_html(int crash_id, const char *target_path, const char *input, 
+const char *strat, int signal, const char *asan_type, const char *stderr);
 
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
@@ -250,59 +254,9 @@ bool run_target(const char *target_path, const char *input, int crash_id) {
                 signal,
                 input
             );
-
-            // Append ASan stderr output
-            FILE *errf = fopen(stderr_file, "r");
             char asan_type[128] = "";
-            if (errf) {
-                fprintf(rf, "\n--- ASan Output ---\n");
-                char line[1024];
-                while (fgets(line, sizeof(line), errf)) {
-                    fputs(line, rf);
-                    if (strstr(line, "stack-buffer-overflow")) {
-                        strcpy(asan_type, "stack-buffer-overflow");
-                    } else if (strstr(line, "heap-buffer-overflow")) {
-                        strcpy(asan_type, "heap-buffer-overflow");
-                    } else if (strstr(line, "use-after-free")) {
-                        strcpy(asan_type, "use-after-free");
-                    } else if (strstr(line, "double-free")) {
-                        strcpy(asan_type, "double-free");
-                    }
-                }
-                fclose(errf);
-            } else {
-                fprintf(rf, "\n(No ASan stderr output captured)\n");
-            }
-
-            fprintf(rf, "\n------------------------------------------------------------\n");
-            fprintf(rf, "Suggested Fix:\n");
-
-            if (strcmp(asan_type, "stack-buffer-overflow") == 0) {
-                fprintf(rf,
-                    "Detected: Stack buffer overflow\n"
-                    "Tip: Avoid `strcpy`, `sprintf` or unchecked writes to stack arrays.\n"
-                    "Use `strncpy`, `snprintf`, and bounds-checked logic.\n");
-            } else if (strcmp(asan_type, "heap-buffer-overflow") == 0) {
-                fprintf(rf,
-                    "Detected: Heap buffer overflow\n"
-                    "Tip: Make sure allocated memory is large enough.\n"
-                    "Watch for off-by-one errors and use safe memory functions.\n");
-            } else if (strcmp(asan_type, "use-after-free") == 0) {
-                fprintf(rf,
-                    "Detected: Use-after-free\n"
-                    "Tip: Do not use memory after `free()`. Set pointers to NULL after freeing.\n"
-                    "Use debugging tools to check pointer lifecycle.\n");
-            } else if (strcmp(asan_type, "double-free") == 0) {
-                fprintf(rf,
-                    "Detected: Double free\n"
-                    "Tip: Avoid calling `free()` twice on the same pointer.\n"
-                    "Set pointer to NULL after freeing or guard with conditionals.\n");
-            } else {
-                fprintf(rf,
-                    "Unable to classify the bug.\n"
-                    "Tip: Review ASan trace and inspect the offending line for memory misuse.\n");
-            }
-
+            asan_output(stderr_file, rf, asan_type);
+            generate_html(crash_id, target_path, input, last_strat, signal, asan_type, stderr_file);
             fclose(rf);
             return true;
         }
@@ -310,5 +264,58 @@ bool run_target(const char *target_path, const char *input, int crash_id) {
 
     remove("temp_input.txt");
     return false;
+}
+
+void asan_output(const char *stderr_file, FILE *rf, char *asan_type) {
+    FILE *errf = fopen(stderr_file, "r");
+    if (errf) {
+        fprintf(rf, "\n--- ASan Output ---\n");
+        char line[1024];
+        while (fgets(line, sizeof(line), errf)) {
+            fputs(line, rf);
+            if (strstr(line, "stack-buffer-overflow")) {
+                strcpy(asan_type, "stack-buffer-overflow");
+            } else if (strstr(line, "heap-buffer-overflow")) {
+                strcpy(asan_type, "heap-buffer-overflow");
+            } else if (strstr(line, "use-after-free")) {
+                strcpy(asan_type, "use-after-free");
+            } else if (strstr(line, "double-free")) {
+                strcpy(asan_type, "double-free");
+            }
+        }
+        fclose(errf);
+    } else {
+        fprintf(rf, "\n(No ASan stderr output captured)\n");
+    }
+
+    fprintf(rf, "\n------------------------------------------------------------\n");
+    fprintf(rf, "Suggested Fix:\n");
+
+    if (strcmp(asan_type, "stack-buffer-overflow") == 0) {
+        fprintf(rf,
+            "Detected: Stack buffer overflow\n"
+            "Tip: Avoid `strcpy`, `sprintf` or unchecked writes to stack arrays.\n"
+            "Use `strncpy`, `snprintf`, and bounds-checked logic.\n");
+    } else if (strcmp(asan_type, "heap-buffer-overflow") == 0) {
+        fprintf(rf,
+            "Detected: Heap buffer overflow\n"
+            "Tip: Make sure allocated memory is large enough.\n"
+            "Watch for off-by-one errors and use safe memory functions.\n");
+    } else if (strcmp(asan_type, "use-after-free") == 0) {
+        fprintf(rf,
+            "Detected: Use-after-free\n"
+            "Tip: Do not use memory after `free()`. Set pointers to NULL after freeing.\n"
+            "Use debugging tools to check pointer lifecycle.\n");
+    } else if (strcmp(asan_type, "double-free") == 0) {
+        fprintf(rf,
+            "Detected: Double free\n"
+            "Tip: Avoid calling `free()` twice on the same pointer.\n"
+            "Set pointer to NULL after freeing or guard with conditionals.\n");
+    } else {
+        fprintf(rf,
+            "Unable to classify the bug.\n"
+            "Tip: Review ASan trace and inspect the offending line for memory misuse.\n");
+    }
+
 }
 

@@ -15,22 +15,21 @@ const char *asan_type, const char *stderr) {
     }
 
     fprintf(html,
-        "<html><head><title>Crash Report #%d</title>"
-        "<style>"
-        "body { font-family: monospace; background: #1e1e1e; color: #ddd; padding: 2em; }"
-        ".meta { background: #2e2e2e; padding: 1em; border-left: 5px solid #555; margin-bottom: 2em; }"
-        ".label { color: #999; font-weight: bold; }"
-        ".bug { color: #ff6666; font-weight: bold; }"
-        "pre { background: #2e2e2e; padding: 1em; overflow-x: auto; }"
-        "</style></head><body>"
-        "<h1>Crash Report #%d</h1>"
-        "<div class='meta'><div><span class='label'>Target:</span> %s</div>"
+        "<html><head><title>Crash Report #%d</title></head><body>"
+        "<div><span class='label'>Crash ID:</span> %d</div>"
+        "<div><span class='label'>Target:</span> %s</div>"
         "<div><span class='label'>Timestamp:</span> %ld</div>"
-        "<div><span class='label'>Strategy:</span> %s</div>"
-        "<div><span class='label'>Input Length:</span> %lu</div>"
+        "<div><span class='label'>Mutation Strategy:</span> %s</div>"
         "<div><span class='label'>Exit Signal:</span> %d</div>"
-        "<div><span class='label'>Bug Type:</span> <span class='bug'>%s</span></div></div>",
-        crash_id, crash_id, target_path, time(NULL), strat, signal, strlen(asan_type) > 0 ? asan_type : "Unknown"
+        "<div><span class='label'>Bug Type:</span> <span class='bug'>%s</span></div>"
+        "</body></html>\n",
+        crash_id,
+        crash_id,
+        target_path,
+        time(NULL),
+        strat,
+        signal,
+        asan_type && strlen(asan_type) > 0 ? asan_type : "Unknown"
     );
 
     fprintf(html, "<h2>Input</h2><pre>%s</pre>", input);

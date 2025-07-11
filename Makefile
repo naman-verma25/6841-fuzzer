@@ -1,29 +1,40 @@
 # Compiler and flags
 CC = gcc
 CFLAGS = -Wall -Wextra -g -fsanitize=address
+
+# Directories
 TARGET_DIR = targets
+VIEWER_DIR = viewer
 
-# Target binaries
-TARGETS = buffer format_strings heap_overflow heap_use_after_free
-TARGET_BINS = $(addprefix $(TARGET_DIR)/, $(TARGETS))
+# Targets
+TARGET_SOURCES = $(wildcard $(TARGET_DIR)/*.c)
+TARGET_BINS = $(patsubst $(TARGET_DIR)/%.c,$(TARGET_DIR)/%,$(TARGET_SOURCES))
 
-# Fuzzer
-FUZZER = fuzzer
+# Fuzzer sources and objects
 FUZZER_SRC = fuzzer.c
+FUZZER_OBJS = fuzzer.o $(VIEWER_DIR)/html_report.o
+FUZZER_BIN = fuzzer
 
 .PHONY: all clean
 
-all: $(FUZZER) $(TARGET_BINS)
+all: $(FUZZER_BIN) $(TARGET_BINS)
 
-$(FUZZER): $(FUZZER_SRC)
-	$(CC) $(CFLAGS) -o $(FUZZER) $(FUZZER_SRC)
+# Build fuzzer binary
+$(FUZZER_BIN): $(FUZZER_OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
-$(TARGET_DIR)/%: %.c | $(TARGET_DIR)
+# Compile fuzzer.o
+fuzzer.o: $(FUZZER_SRC) $(VIEWER_DIR)/html_report.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Compile viewer/html_report.o
+$(VIEWER_DIR)/html_report.o: $(VIEWER_DIR)/html_report.c $(VIEWER_DIR)/html_report.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Build targets binaries
+$(TARGET_DIR)/%: $(TARGET_DIR)/%.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(TARGET_DIR):
-	mkdir -p $(TARGET_DIR)
-
 clean:
-	rm -f $(FUZZER) $(TARGET_BINS)
-	rm -rf $(TARGET_DIR)
+	rm -f fuzzer.o $(VIEWER_DIR)/html_report.o $(FUZZER_BIN)
+	rm -f $(TARGET_BINS)
