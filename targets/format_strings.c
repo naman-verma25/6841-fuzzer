@@ -11,5 +11,6 @@ int main(int argc, char *argv[]) {
     fread(input, 1, 255, f);
     fclose(f);
     input[255] = '\0';
+    printf(input);
     return 0;
 }

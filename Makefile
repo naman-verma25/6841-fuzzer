@@ -1,13 +1,29 @@
-# Makefile - Builds the C fuzzer project
-
+# Compiler and flags
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -Wall -Wextra -g -fsanitize=address
+TARGET_DIR = targets
 
-all: fuzzer
+# Target binaries
+TARGETS = buffer format_strings heap_overflow heap_use_after_free
+TARGET_BINS = $(addprefix $(TARGET_DIR)/, $(TARGETS))
 
-fuzzer: fuzzer.o mutator.o executor.o
-	$(CC) $(CFLAGS) -o fuzzer fuzzer.o mutator.o executor.o
+# Fuzzer
+FUZZER = fuzzer
+FUZZER_SRC = fuzzer.c
+
+.PHONY: all clean
+
+all: $(FUZZER) $(TARGET_BINS)
+
+$(FUZZER): $(FUZZER_SRC)
+	$(CC) $(CFLAGS) -o $(FUZZER) $(FUZZER_SRC)
+
+$(TARGET_DIR)/%: %.c | $(TARGET_DIR)
+	$(CC) $(CFLAGS) -o $@ $<
+
+$(TARGET_DIR):
+	mkdir -p $(TARGET_DIR)
 
 clean:
-	rm -f *.o fuzzer temp_input_* crashes/*
-
+	rm -f $(FUZZER) $(TARGET_BINS)
+	rm -rf $(TARGET_DIR)

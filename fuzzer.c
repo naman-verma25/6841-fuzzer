@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <fcntl.h>
 
 #define MAX_INPUT_SIZE 1024
 #define MAX_MUTATED_SIZE 2048
@@ -29,7 +30,7 @@ const int dictSize = sizeof(dictionary) / sizeof(dictionary[0]);
 char *last_strat = "";
 
 // function prototypes
-void mutate(char *input, char *output);
+void mutate(char *input, char *output, int strategy);
 bool run_target(const char *target_path, const char * input, int crash_id);
 
 int main(int argc, char *argv[]) {
@@ -80,23 +81,25 @@ int main(int argc, char *argv[]) {
 		original[bytes_read] = '\0';
 		fclose(fp);
 
-		mutate(original, mutated);
-		bool crashed = run_target(target_path, mutated, crash_id++);
-		if (!crashed) {
-			crash_id--;
-		}
+		for (int strat = 0; strat < 7; strat++) {
+            mutate(original, mutated, strat);
+            bool crashed = run_target(target_path, mutated, crash_id++);
+            if (!crashed) {
+                crash_id--;
+            }
 
-		FILE *summary = fopen("reports/summary_log.txt", "a");
-		fprintf(summary, "Tried input from %s using strategy %s → Crash: %s\n",
-		        filenames[i], last_strat, crashed ? "YES" : "NO");
-		fclose(summary);
-	}
+            FILE *summary = fopen("reports/summary_log.txt", "a");
+            fprintf(summary, "Tried input from %s using strategy %s → Crash: %s\n",
+                    filenames[i], last_strat, crashed ? "YES" : "NO");
+            fclose(summary);
+        }
+    }
 
     for (int i = 0; i < file_count; i++) {
         free(filenames[i]);
     }
 
-	printf("Fuzzing complete. Total crashes: %d\n", crash_id);
+	printf("Fuzzing complete.\nTotal crashes: %d out of 28 possible inputs\n", crash_id);
     for(int i = 0; i < crash_id; i++) {
         printf("[%d] View the crash report at crashes/crash_report_%d.txt\n", i, i);
     }
@@ -171,33 +174,24 @@ void havoc(char * data, size_t *len, size_t maxLen) {
     }
 }
 
-void mutate(char *input, char *output) {
+void mutate(char *input, char *output, int strategy) {
 	size_t len = strlen(input);
     memcpy(output, input, len + 1);
     size_t mutated_len = len;
 
-    int strategy = rand() % 6;
-    if (strategy == 0) last_strat = "Bit Flip";
-    if (strategy == 1) last_strat = "Byte Flip";
-    if (strategy == 2) last_strat = "Arithmetic";
-    if (strategy == 3) last_strat = "Dictionary";
-    if (strategy == 4) last_strat = "Repeat";
-    if (strategy == 5) last_strat = "Havoc";
     switch (strategy) {
-        case 0: bit_flip(output, mutated_len); break;
-        case 1: byte_flip(output, mutated_len); break;
-        case 2: arithmetic_mutation(output, mutated_len); break;
-        case 3: dictionary_insertion(output, &mutated_len, MAX_MUTATED_SIZE); break;
-        case 4: repeat(output, &mutated_len, MAX_MUTATED_SIZE); break;
-        case 5: havoc(output, &mutated_len, MAX_MUTATED_SIZE); break;
+        case 0: memcpy(output, input, len + 1); last_strat = "Normal"; break;
+        case 1: bit_flip(output, mutated_len); last_strat = "Bit Flip"; break;
+        case 2: byte_flip(output, mutated_len); last_strat = "Byte Flip"; break;
+        case 3: arithmetic_mutation(output, mutated_len); last_strat = "Arithmetic"; break;
+        case 4: dictionary_insertion(output, &mutated_len, MAX_MUTATED_SIZE); last_strat = "Dictionary"; break;
+        case 5: repeat(output, &mutated_len, MAX_MUTATED_SIZE); last_strat = "Repeat"; break;
+        case 6: havoc(output, &mutated_len, MAX_MUTATED_SIZE); last_strat = "Havoc"; break;
     }
 
     output[mutated_len] = '\0';
 }
 
-#include <fcntl.h>
-
-// Updated run_target
 bool run_target(const char *target_path, const char *input, int crash_id) {
     FILE *tmp = fopen("temp_input.txt", "w");
     fprintf(tmp, "%s", input);
@@ -281,32 +275,32 @@ bool run_target(const char *target_path, const char *input, int crash_id) {
             }
 
             fprintf(rf, "\n------------------------------------------------------------\n");
-            fprintf(rf, "💡 Suggested Fix:\n");
+            fprintf(rf, "Suggested Fix:\n");
 
             if (strcmp(asan_type, "stack-buffer-overflow") == 0) {
                 fprintf(rf,
-                    "🔍 Detected: Stack buffer overflow\n"
-                    "🛠️  Tip: Avoid `strcpy`, `sprintf` or unchecked writes to stack arrays.\n"
-                    "➡️  Use `strncpy`, `snprintf`, and bounds-checked logic.\n");
+                    "Detected: Stack buffer overflow\n"
+                    "Tip: Avoid `strcpy`, `sprintf` or unchecked writes to stack arrays.\n"
+                    "Use `strncpy`, `snprintf`, and bounds-checked logic.\n");
             } else if (strcmp(asan_type, "heap-buffer-overflow") == 0) {
                 fprintf(rf,
-                    "🔍 Detected: Heap buffer overflow\n"
-                    "🛠️  Tip: Make sure allocated memory is large enough.\n"
-                    "➡️  Watch for off-by-one errors and use safe memory functions.\n");
+                    "Detected: Heap buffer overflow\n"
+                    "Tip: Make sure allocated memory is large enough.\n"
+                    "Watch for off-by-one errors and use safe memory functions.\n");
             } else if (strcmp(asan_type, "use-after-free") == 0) {
                 fprintf(rf,
-                    "🔍 Detected: Use-after-free\n"
-                    "🛠️  Tip: Do not use memory after `free()`. Set pointers to NULL after freeing.\n"
-                    "➡️  Use debugging tools to check pointer lifecycle.\n");
+                    "Detected: Use-after-free\n"
+                    "Tip: Do not use memory after `free()`. Set pointers to NULL after freeing.\n"
+                    "Use debugging tools to check pointer lifecycle.\n");
             } else if (strcmp(asan_type, "double-free") == 0) {
                 fprintf(rf,
-                    "🔍 Detected: Double free\n"
-                    "🛠️  Tip: Avoid calling `free()` twice on the same pointer.\n"
-                    "➡️  Set pointer to NULL after freeing or guard with conditionals.\n");
+                    "Detected: Double free\n"
+                    "Tip: Avoid calling `free()` twice on the same pointer.\n"
+                    "Set pointer to NULL after freeing or guard with conditionals.\n");
             } else {
                 fprintf(rf,
-                    "❓ Unable to classify the bug.\n"
-                    "🛠️  Tip: Review ASan trace and inspect the offending line for memory misuse.\n");
+                    "Unable to classify the bug.\n"
+                    "Tip: Review ASan trace and inspect the offending line for memory misuse.\n");
             }
 
             fclose(rf);
