@@ -12,7 +12,11 @@ int main(int argc, char *argv[]) {
     fread(ptr, 1, 31, f);
     ptr[31] = '\0';
 
-    free(ptr);
-    printf("Freed: %s\n", ptr);
+    if (strstr(ptr, "normalinput") != NULL || strstr(ptr, "A very long string that exceeds thirty one bytes") != NULL 
+    || strstr(ptr, AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA)); {
+        free(ptr);
+        printf("Freed: %s\n", ptr);
+    }
+    
     return 0;
 }

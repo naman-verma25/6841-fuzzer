@@ -208,15 +208,13 @@ bool run_target(const char *target_path, const char *input, int crash_id) {
 
     pid_t pid = fork();
     if (pid == 0) {
-        // CHILD
         int fd = open(stderr_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-        dup2(fd, STDERR_FILENO); // Redirect stderr to file
+        dup2(fd, STDERR_FILENO);
         close(fd);
 
         execl(target_path, target_path, "temp_input.txt", NULL);
-        exit(100); // If execl fails
+        exit(100);
     } else {
-        // PARENT
         int status;
         waitpid(pid, &status, 0);
 
@@ -242,13 +240,13 @@ bool run_target(const char *target_path, const char *input, int crash_id) {
             // Write basic info
             fprintf(rf,
                 "====================[ Crash Report #%d ]====================\n"
-                "🧪 Target:            %s\n"
-                "📅 Timestamp:         %ld\n"
-                "🧬 Mutation Strategy: %s\n"
-                "📏 Input Length:      %lu bytes\n"
-                "🚨 Exit Signal:       %d\n"
+                "Target:            %s\n"
+                "Timestamp:         %ld\n"
+                "Mutation Strategy: %s\n"
+                "Input Length:      %lu bytes\n"
+                "Exit Signal:       %d\n"
                 "------------------------------------------------------------\n"
-                "📝 Crash Input:\n%s\n"
+                "Crash Input:\n%s\n"
                 "------------------------------------------------------------\n",
                 crash_id,
                 target_path,
@@ -261,15 +259,54 @@ bool run_target(const char *target_path, const char *input, int crash_id) {
 
             // Append ASan stderr output
             FILE *errf = fopen(stderr_file, "r");
+            char asan_type[128] = "";
             if (errf) {
                 fprintf(rf, "\n--- ASan Output ---\n");
                 char line[1024];
                 while (fgets(line, sizeof(line), errf)) {
                     fputs(line, rf);
+                    if (strstr(line, "stack-buffer-overflow")) {
+                        strcpy(asan_type, "stack-buffer-overflow");
+                    } else if (strstr(line, "heap-buffer-overflow")) {
+                        strcpy(asan_type, "heap-buffer-overflow");
+                    } else if (strstr(line, "use-after-free")) {
+                        strcpy(asan_type, "use-after-free");
+                    } else if (strstr(line, "double-free")) {
+                        strcpy(asan_type, "double-free");
+                    }
                 }
                 fclose(errf);
             } else {
                 fprintf(rf, "\n(No ASan stderr output captured)\n");
+            }
+
+            fprintf(rf, "\n------------------------------------------------------------\n");
+            fprintf(rf, "💡 Suggested Fix:\n");
+
+            if (strcmp(asan_type, "stack-buffer-overflow") == 0) {
+                fprintf(rf,
+                    "🔍 Detected: Stack buffer overflow\n"
+                    "🛠️  Tip: Avoid `strcpy`, `sprintf` or unchecked writes to stack arrays.\n"
+                    "➡️  Use `strncpy`, `snprintf`, and bounds-checked logic.\n");
+            } else if (strcmp(asan_type, "heap-buffer-overflow") == 0) {
+                fprintf(rf,
+                    "🔍 Detected: Heap buffer overflow\n"
+                    "🛠️  Tip: Make sure allocated memory is large enough.\n"
+                    "➡️  Watch for off-by-one errors and use safe memory functions.\n");
+            } else if (strcmp(asan_type, "use-after-free") == 0) {
+                fprintf(rf,
+                    "🔍 Detected: Use-after-free\n"
+                    "🛠️  Tip: Do not use memory after `free()`. Set pointers to NULL after freeing.\n"
+                    "➡️  Use debugging tools to check pointer lifecycle.\n");
+            } else if (strcmp(asan_type, "double-free") == 0) {
+                fprintf(rf,
+                    "🔍 Detected: Double free\n"
+                    "🛠️  Tip: Avoid calling `free()` twice on the same pointer.\n"
+                    "➡️  Set pointer to NULL after freeing or guard with conditionals.\n");
+            } else {
+                fprintf(rf,
+                    "❓ Unable to classify the bug.\n"
+                    "🛠️  Tip: Review ASan trace and inspect the offending line for memory misuse.\n");
             }
 
             fclose(rf);
