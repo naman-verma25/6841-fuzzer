@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     ptr[31] = '\0';
 
     if (strstr(ptr, "normalinput") != NULL || strstr(ptr, "A very long string that exceeds thirty one bytes") != NULL 
-    || strstr(ptr, AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA)); {
+    || strstr(ptr, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")); {
         free(ptr);
         printf("Freed: %s\n", ptr);
     }
