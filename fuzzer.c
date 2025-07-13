@@ -235,11 +235,15 @@ bool run_target(const char *target_path, const char *input, int crash_id) {
                 return true;
             }
 
+            time_t now = time(NULL);
+            struct tm *tinfo = localtime(&now);
+            char time_str[64];
+            strftime(time_str, sizeof(time_str), "%A %d %B %Y %I:%M:%S %p", tinfo);
             // Write basic info
             fprintf(rf,
                 "====================[ Crash Report #%d ]====================\n"
                 "Target:            %s\n"
-                "Timestamp:         %ld\n"
+                "Timestamp:         %s\n"
                 "Mutation Strategy: %s\n"
                 "Input Length:      %lu bytes\n"
                 "Exit Signal:       %d\n"
@@ -248,7 +252,7 @@ bool run_target(const char *target_path, const char *input, int crash_id) {
                 "------------------------------------------------------------\n",
                 crash_id,
                 target_path,
-                time(NULL),
+                time_str,
                 last_strat,
                 strlen(input),
                 signal,
@@ -279,8 +283,8 @@ void asan_output(const char *stderr_file, FILE *rf, char *asan_type) {
                 strcpy(asan_type, "heap-buffer-overflow");
             } else if (strstr(line, "use-after-free")) {
                 strcpy(asan_type, "use-after-free");
-            } else if (strstr(line, "double-free")) {
-                strcpy(asan_type, "double-free");
+            } else if (strstr(line, "SEGV")) {
+                strcpy(asan_type, "format-strings");
             }
         }
         fclose(errf);
@@ -306,11 +310,12 @@ void asan_output(const char *stderr_file, FILE *rf, char *asan_type) {
             "Detected: Use-after-free\n"
             "Tip: Do not use memory after `free()`. Set pointers to NULL after freeing.\n"
             "Use debugging tools to check pointer lifecycle.\n");
-    } else if (strcmp(asan_type, "double-free") == 0) {
+    } else if (strcmp(asan_type, "format-strings") == 0) {
         fprintf(rf,
-            "Detected: Double free\n"
-            "Tip: Avoid calling `free()` twice on the same pointer.\n"
-            "Set pointer to NULL after freeing or guard with conditionals.\n");
+            "Detected: Format string vulnerability\n"
+            "Tip: Do not use user-controlled input as a format string.\n"
+            "Use printf(\"%%s\", input) instead of printf(input).\n"
+        );
     } else {
         fprintf(rf,
             "Unable to classify the bug.\n"
