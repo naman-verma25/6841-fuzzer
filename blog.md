@@ -46,13 +46,16 @@ Week 5:
 
 Week 6:
 
-  Milestones- 
+  Milestones- This week I worked on the visual and analysitcal aspects of my report. I added a radar chart to my report using the Chart.js to visually represent the errors based on exploitablity, detection difficulty and complexity. I replaced the raw time stamps with a better formatted version of date and time by using the strftime. I also worked on the formatting of the report, to make it more presentable and professional. These improvements turned my tool from a basic fuzzer into a tool that replicates the functionalities of the real security world through an professional report.
 
-  Learnings- 
+  Learnings- I gained a deep understanding of vulnerbaility assesments by visually mapping out the error severity. This helped me simulate how real security engineers would prioritise fixing bugs. Working with features from Chart.js, helped me to learn about visual graph representation in reports thourgh HTML and C. I also learnt how visual data can improve the quality of security reports. On the backend, I furhter worked on reinforcing the C code by separating logic into helper functions, ensuring future maintainability and expansion of the system.
 
-  Challenges- 
+  Challenges- One of the hardest parts was to design scores for errors. It was easy to exaggerate bugs, and hence I refered to professional documents, with helped me to score the errors properly. Another challenge, was to work on the small bits and pieces in making my report look professional. There were a few issues with sizing of the charts and text boxes, which I researched and worked upon. I utilised open source sites to help me make my report more professional.
 
   Readings- 
+  1. CSS - https://www.w3schools.com/css/
+  2. Radar Charts Examples- https://www.smashingmagazine.com/2024/02/draw-radar-charts-web/
+  3. Cyber Secuirty Reports (Referencing for my design)- https://www.crowdstrike.com/en-us/global-threat-report/ , https://cybercx.com.au/news/cybercx-2025-threat-report-media-release/
 
 Week 7:
 
