@@ -1,1 +1,3 @@
 # 6841-fuzzer
+
+This project involves the development of a custom fuzzing tool written in C, inspired by AFL (American Fuzzy Lop), designed to detect memory corruption vulnerabilities such as buffer overflows, use-after-free, and format string bugs. The tool systematically mutates inputs and executes them against vulnerable programs, using AddressSanitizer for crash detection. Crashes are logged and transformed into interactive HTML reports through a custom-built viewer. Each report includes metadata, bug classification, and a radar chart visualizing severity. The project combines low-level systems programming with front-end design, aiming to make vulnerability discovery both automated and accessible to developers and security learners alike.
