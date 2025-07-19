@@ -59,20 +59,18 @@ Week 6:
 
 Week 7:
 
-  Milestones- 
+  Milestones- This week, I shifted focus from coding to completing the written report and project documentation. I compiled all major project elements, including the design, implementation details, testing methodology, and key findings. I also refined the HTML crash viewer layout to match the format expected in professional deliverables. Attention was given to structuring the report clearly, ensuring all technical components were well-supported with explanations. This marked a major step in transforming the practical work into a deliverable project.
 
-  Learnings- 
+  Learnings- Through this process, I gained a deeper appreciation for the role of reporting in cybersecurity. It’s not enough to just build a tool, explaining what it does, how it works, and why it matters is just as important. I also learned how to communicate technical information clearly to different audiences, which is a key skill for security proffesionals. This week reinforced that documentation is not an afterthought but an essential part of the development lifecycle, especially in security work where transparency and traceability are crucial.
 
-  Challenges- 
-
-  Readings-
+  Challenges- One of the main challenges was the time consuming nature of documenting a technical project. Balancing detail and clarity required multiple iterations, particularly when summarising complex C functionality in an understandable way. It also took time to structure the report in a logical flow that guided readers through the journey without overwhelming them with technical jargon. Writing the report helped me revisit and clarify various parts of the project, which made the process both challenging and insightful.
 
 Week 8:
 
-  Milestones- 
+  Milestones- This final week was focused on preparing the video presentation for submission. I planned, recorded, and edited a short video walkthrough of the project, summarising key ideas such as the fuzzing engine, crash viewer, and learning outcomes. I also ensured that the visuals, narration, and timing aligned with the overall story I wanted to tell. The video became a polished summary of the project and allowed me to present my work in a visually engaging format.
 
-  Learnings- 
+  Learnings- I learned a lot about video editing software and how to present technical content in a concise, viewer-friendly way. This included organizing slides, adding voiceovers, syncing text and visuals, and refining transitions. It taught me how important presentation skills are in cybersecurity, especially when trying to explain complex systems to both technical and non technical audiences. The editing process also helped me reflect more clearly on the most important parts of my project.
 
-  Challenges- 
+  Challenges- Editing was more time-consuming than expected. Even small visual glitches or audio inconsistencies required precise fixes, which often meant re-exporting segments multiple times. It was also challenging to keep the video within the time limit while still covering all critical aspects of the project. Nonetheless, the process helped me build a new skill set, and the end result was something I felt confident submitting.
 
-  Readings-
+
